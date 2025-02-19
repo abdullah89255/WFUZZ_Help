@@ -1,162 +1,6 @@
 # WFUZZ_Help
 Here’s a complete breakdown of **WFuzz** help options with examples to help you use it effectively. WFuzz is a highly configurable tool, primarily used for brute-forcing web applications (e.g., directories, files, parameters).
 
-### View Help Menu
-Run this command to see the available options:
-```bash
-wfuzz --help
-```
-
----
-
-### 1. **Basic Command Structure**
-The general structure for a WFuzz command is:
-```bash
-wfuzz [options] -u <URL> -w <wordlist>
-```
-
-- **`-u`**: Specifies the target URL.
-- **`-w`**: Specifies the wordlist to use.
-
----
-
-### 2. **Key Options with Examples**
-
-#### **a) URL (-u) and Wordlist (-w)**
-Specify the URL and wordlist:
-```bash
-wfuzz -u http://example.com/FUZZ -w /path/to/wordlist.txt
-```
-- The placeholder `FUZZ` in the URL is replaced by entries from the wordlist.
-
-#### **b) Filtering Results (-c, --hc, --hl, --hw)**
-Filter the output based on the response.
-
-- **`-c`**: Colorize the output.
-- **`--hc <code>`**: Hide responses with specific HTTP status codes.
-  ```bash
-  wfuzz -u http://example.com/FUZZ -w wordlist.txt --hc 404
-  ```
-  This hides all `404 Not Found` responses.
-
-- **`--hl <length>`**: Hide responses of a specific content length.
-  ```bash
-  wfuzz -u http://example.com/FUZZ -w wordlist.txt --hl 0
-  ```
-  This hides responses with a content length of `0`.
-
-- **`--hw <words>`**: Hide responses based on word count.
-  ```bash
-  wfuzz -u http://example.com/FUZZ -w wordlist.txt --hw 10
-  ```
-  This hides responses with 10 words in the body.
-
-#### **c) Adding Headers (--hc, --hh)**
-Add or modify HTTP headers to customize requests.
-
-- Add headers:
-  ```bash
-  wfuzz -u http://example.com/FUZZ -w wordlist.txt -H "User-Agent: CustomUserAgent"
-  ```
-- Add multiple headers:
-  ```bash
-  wfuzz -u http://example.com/FUZZ -w wordlist.txt -H "Cookie: session=123" -H "Referer: http://google.com"
-  ```
-
-#### **d) POST Requests (-d)**
-Send data in a POST request:
-```bash
-wfuzz -u http://example.com/login -w usernames.txt -d "username=FUZZ&password=admin"
-```
-
-#### **e) Proxy Support (--proxy)**
-Route requests through a proxy server:
-```bash
-wfuzz -u http://example.com/FUZZ -w wordlist.txt --proxy http://127.0.0.1:8080
-```
-
-#### **f) Recursive Fuzzing**
-Perform recursive fuzzing on directories:
-```bash
-wfuzz -u http://example.com/FUZZ/ -w directories.txt
-```
-
-#### **g) Multiple Injection Points**
-Fuzz multiple points by using `FUZZ` multiple times in the URL:
-```bash
-wfuzz -u http://example.com/FUZZ/FUZZ -w wordlist.txt
-```
-
-#### **h) Output Options**
-Save output to a file:
-```bash
-wfuzz -u http://example.com/FUZZ -w wordlist.txt -o output.txt
-```
-
----
-
-### 3. **Advanced Usage**
-
-#### **a) Use Multiple Wordlists**
-Fuzz different points with separate wordlists:
-```bash
-wfuzz -u http://example.com/FUZZ/FUZZ -w wordlist1.txt -w wordlist2.txt
-```
-
-#### **b) Fuzz Cookies**
-Fuzz values within cookies:
-```bash
-wfuzz -u http://example.com/ -w wordlist.txt -b "session=FUZZ"
-```
-
-#### **c) Customizing HTTP Methods**
-Change the HTTP method to something like `PUT`, `DELETE`, etc.:
-```bash
-wfuzz -u http://example.com/FUZZ -w wordlist.txt --method PUT
-```
-
----
-
-### 4. **Common Examples**
-
-#### **Directory Brute-Forcing**
-```bash
-wfuzz -u http://example.com/FUZZ -w /usr/share/wordlists/dirb/common.txt
-```
-
-#### **Parameter Fuzzing**
-```bash
-wfuzz -u http://example.com/page?FUZZ=test -w params.txt
-```
-
-#### **File Extension Brute-Forcing**
-```bash
-wfuzz -u http://example.com/index.FUZZ -w extensions.txt
-```
-
-#### **Fuzz Hidden Parameters**
-```bash
-wfuzz -u http://example.com/page?param=value&FUZZ= -w params.txt
-```
-
-#### **SQL Injection**
-```bash
-wfuzz -u http://example.com/page?id=FUZZ -w sqli.txt
-```
-
----
-
-### 5. **Wordlist Sources**
-Popular wordlists can be found in the following locations:
-- **Kali Linux**: `/usr/share/wordlists/`
-- **SecLists (GitHub)**: [SecLists](https://github.com/danielmiessler/SecLists)
-
----
-
-Here is a detailed breakdown of all Wfuzz options and their practical examples. Wfuzz is highly customizable and versatile, making it ideal for web application fuzzing.
-
----
-
 ## **Basic Syntax**
 ```bash
 wfuzz [options] <URL>
@@ -327,5 +171,218 @@ wfuzz -c -z file,/usr/share/wordlists/common.txt --proxy http://127.0.0.1:8080 h
 ```
 
 ---
+---
 
-Wfuzz is a highly flexible tool that supports complex fuzzing scenarios. Let me know if you'd like more advanced examples or specific use cases!
+Here are **additional advanced Wfuzz examples** tailored for various scenarios and attack techniques. These cover diverse use cases such as API fuzzing, token discovery, advanced filtering, and more.
+
+---
+
+## **1. Fuzzing Query Parameters**
+Discover hidden or vulnerable query parameters in a URL:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/parameters.txt --hc 404 http://target.com/page.php?FUZZ=value
+```
+
+---
+
+## **2. Fuzzing API Endpoints**
+Identify hidden endpoints in REST APIs:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/api-endpoints.txt --hc 404 http://target.com/api/FUZZ
+```
+
+---
+
+## **3. JSON POST Data Fuzzing**
+Fuzz JSON payloads often used in modern APIs:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/common.txt -d '{"username":"FUZZ","password":"admin"}' -H "Content-Type: application/json" http://target.com/api/login
+```
+
+---
+
+## **4. Header Injection Fuzzing**
+Discover possible vulnerabilities in HTTP headers:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/payloads.txt -H "X-Custom-Header: FUZZ" http://target.com
+```
+
+---
+
+## **5. Multi-Position Fuzzing in POST Data**
+Fuzz multiple fields in POST data:
+```bash
+wfuzz -c -z file,usernames.txt -z file,passwords.txt -d "username=FUZZ&password=FUZ2" http://target.com/login
+```
+
+---
+
+## **6. Token Discovery**
+Find sensitive tokens in a URL path:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/tokens.txt --hc 404 http://target.com/private/FUZZ
+```
+
+---
+
+## **7. Recursive Fuzzing for Hidden Content**
+Fuzz for directories, then recursively fuzz the discovered directories:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/dirb/common.txt --recursion --hc 404 http://target.com/FUZZ
+```
+
+---
+
+## **8. Fuzzing for Subdomains**
+Use DNS wordlists to find subdomains:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/dns/subdomains-top1million-5000.txt -H "Host: FUZZ.target.com" http://target.com
+```
+
+---
+
+## **9. Brute-Force Login**
+Fuzz both username and password fields simultaneously:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/usernames.txt -z file,/usr/share/wordlists/passwords.txt --hc 200 -d "username=FUZZ&password=FUZ2" http://target.com/login
+```
+
+---
+
+## **10. Filter Responses by Status Code**
+Focus only on specific HTTP response codes:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/common.txt --sc 200 http://target.com/FUZZ
+```
+
+---
+
+## **11. Filtering Results by Content**
+Filter responses based on content length, words, or lines.
+
+#### Example: Filter by Content Length
+```bash
+wfuzz -c -z file,/usr/share/wordlists/common.txt --hh 500 http://target.com/FUZZ
+```
+
+#### Example: Filter by Number of Words
+```bash
+wfuzz -c -z file,/usr/share/wordlists/common.txt --hw 30 http://target.com/FUZZ
+```
+
+---
+
+## **12. Delay Between Requests**
+Introduce delays between requests to avoid detection or rate-limiting:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/common.txt --delay 2 http://target.com/FUZZ
+```
+
+---
+
+## **13. Advanced Multi-Payload Fuzzing**
+Fuzz combinations of usernames, passwords, and tokens:
+```bash
+wfuzz -c -z file,usernames.txt -z file,passwords.txt -z file,tokens.txt --hc 404 http://target.com/login?user=FUZZ&pass=FUZ2&token=FUZ3
+```
+
+---
+
+## **14. Blind Command Injection**
+Fuzz vulnerable parameters for command injection by observing response differences:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/command-injection.txt --hc 404 http://target.com/page.php?cmd=FUZZ
+```
+
+---
+
+## **15. SSRF Payload Discovery**
+Fuzz SSRF (Server-Side Request Forgery) vectors:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/ssrf-payloads.txt --hc 404 http://target.com/resource?url=FUZZ
+```
+
+---
+
+## **16. Proxy Support for BurpSuite**
+Route requests through BurpSuite for deeper analysis:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/common.txt --proxy http://127.0.0.1:8080 http://target.com/FUZZ
+```
+
+---
+
+## **17. Fuzzing for Open Redirects**
+Check if a parameter is vulnerable to open redirection:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/open-redirect.txt --hc 404 http://target.com/page.php?redirect=FUZZ
+```
+
+---
+
+## **18. Brute-Force HTTP Methods**
+Fuzz HTTP methods for unauthorized access:
+```bash
+wfuzz -c -z list,GET-POST-PUT-DELETE http://target.com/resource -X FUZZ
+```
+
+---
+
+## **19. Test SQL Injection Vectors**
+Inject SQL payloads into parameters:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/sql-injection.txt --hc 404 http://target.com/page.php?id=FUZZ
+```
+
+---
+
+## **20. Fuzzing Cookies**
+Inject payloads into cookies to find vulnerabilities:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/payloads.txt --cookie "SESSION=FUZZ" http://target.com
+```
+
+---
+
+## **21. Debugging Responses**
+Save all responses for later inspection:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/common.txt --hc 404 --output results.txt http://target.com/FUZZ
+```
+
+---
+
+## **22. Reverse Payload Fuzzing**
+Reverse payloads before fuzzing (useful for wordlist variations):
+```bash
+rev /usr/share/wordlists/common.txt > reversed.txt
+wfuzz -c -z file,reversed.txt http://target.com/FUZZ
+```
+
+---
+
+## **23. Fuzz for Backup Files**
+Search for backup file extensions:
+```bash
+wfuzz -c -z list,.zip-.tar.gz-.bak-.sql http://target.com/FUZZ
+```
+
+---
+
+## **24. Fuzzing Specific HTTP Headers**
+Fuzz HTTP headers for vulnerabilities:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/payloads.txt -H "X-Forwarded-For: FUZZ" http://target.com
+```
+
+---
+
+## **25. Recursive Directory and File Discovery**
+Combine recursive fuzzing with backup file detection:
+```bash
+wfuzz -c -z file,/usr/share/wordlists/dirb/common.txt --recursion http://target.com/FUZZ -z list,.bak-.zip-.sql
+```
+
+---
+
+These examples cover advanced use cases and can be adapted for penetration testing tasks. Let me know if you'd like detailed explanations or further assistance with specific scenarios!
