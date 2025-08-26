@@ -384,5 +384,92 @@ wfuzz -c -z file,/usr/share/wordlists/dirb/common.txt --recursion http://target.
 ```
 
 ---
+Got it 👍
+That **`Pycurl error 28`** means:
 
-These examples cover advanced use cases and can be adapted for penetration testing tasks. Let me know if you'd like detailed explanations or further assistance with specific scenarios!
+➡️ `wfuzz` sent the request, but **didn’t get any response within the timeout (90 seconds)**.
+This is different from the earlier OpenSSL warning — now it’s a **connection or timeout issue**.
+
+---
+
+### 🔍 Common Causes
+
+1. **Target not responding**
+
+   * Wrong URL/endpoint (e.g., `http://example.com/FUZZ` but server doesn’t exist).
+   * Firewall/WAF blocking fuzzing.
+
+2. **HTTPS issues (SSL/TLS)**
+
+   * If pycurl isn’t correctly compiled with OpenSSL (your earlier warning), SSL handshakes may hang.
+
+3. **Timeout too high / low**
+
+   * By default, wfuzz waits **90 seconds per request** → if server drops packets, it will stall.
+
+---
+
+### ✅ Fixes & Workarounds
+
+#### 1. Check if site is reachable
+
+```bash
+curl -I https://target.com/
+```
+
+If `curl` also hangs → site may be blocking requests or pycurl SSL is broken.
+
+---
+
+#### 2. Lower timeout in wfuzz
+
+```bash
+wfuzz -z file,/usr/share/wordlists/dirb/common.txt --timeout=10 --sc 200 https://target.com/FUZZ
+```
+
+* `--timeout=10` → wait max 10s.
+* `--sc 200` → only show responses with HTTP 200.
+
+---
+
+#### 3. Force HTTP/HTTPS scheme
+
+If site only responds on HTTP:
+
+```bash
+wfuzz -z file,wordlist.txt http://target.com/FUZZ
+```
+
+---
+
+#### 4. Ignore SSL cert issues
+
+```bash
+wfuzz --hc 404 --follow --filter "r.status_code==200" --ss "admin" -z file,wordlist.txt --to 10 --verify no https://target.com/FUZZ
+```
+
+(`--verify no` disables SSL verification)
+
+---
+
+#### 5. Rebuild pycurl properly (if still SSL issue)
+
+```bash
+sudo pip3 install --force-reinstall --no-cache-dir pycurl --no-binary :all:
+```
+
+---
+
+⚡ Quick test:
+Try a **fast endpoint** with a short wordlist:
+
+```bash
+wfuzz -z list,test,admin https://httpbin.org/get?user=FUZZ --timeout=5
+```
+
+If this works → the issue is with your target, not wfuzz.
+
+---
+
+👉 Want me to write you a **safe wfuzz wrapper script** that automatically sets a short timeout, ignores SSL errors, and logs results nicely (CSV/HTML)?
+
